@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Financial Literacy Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --card: #1c2128;
+      --border: #2d333b;
+      --green: #3fb950;
+      --green-glow: rgba(63,185,80,0.18);
+      --red: #f85149;
+      --red-glow: rgba(248,81,73,0.18);
+      --gold: #e6b450;
+      --gold-glow: rgba(230,180,80,0.18);
+      --blue: #58a6ff;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --radius: 14px;
+    }
+
+    body {
+      font-family: 'Sora', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(88,166,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(88,166,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Ambient glow */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(63,185,80,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 720px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── HEADER ── */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-glow);
+      border: 1px solid var(--green);
+      color: var(--green);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 999px;
+      margin-bottom: 1.2rem;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      line-height: 1.15;
+      margin-bottom: 0.7rem;
+      background: linear-gradient(135deg, #e6edf3 30%, var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── PROGRESS ── */
+    .progress-bar-wrap {
+      background: var(--border);
+      border-radius: 999px;
+      height: 6px;
+      margin-bottom: 0.6rem;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      border-radius: 999px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem 2rem;
+      animation: fadeUp 0.4s ease both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--green), var(--blue), var(--gold));
+    }
+
+    .question-number {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 0.8rem;
+    }
+
+    .question-text {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.15rem, 2.5vw, 1.4rem);
+      line-height: 1.5;
+      margin-bottom: 1.6rem;
+      color: var(--text);
+    }
+
+    /* ── OPTIONS ── */
+    .options {
+      display: grid;
+      gap: 0.7rem;
+    }
+
+    .option-btn {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1.1rem;
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.18s ease;
+      position: relative;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--blue);
+      background: rgba(88,166,255,0.06);
+      transform: translateX(3px);
+    }
+
+    .option-btn .letter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--border);
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all 0.18s ease;
+    }
+
+    .option-btn.correct {
+      border-color: var(--green);
+      background: var(--green-glow);
+    }
+    .option-btn.correct .letter {
+      background: var(--green);
+      color: #0d1117;
+    }
+
+    .option-btn.wrong {
+      border-color: var(--red);
+      background: var(--red-glow);
+    }
+    .option-btn.wrong .letter {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .option-btn:disabled { cursor: default; }
+
+    /* ── FEEDBACK ── */
+    .feedback-box {
+      margin-top: 1.2rem;
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      display: none;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .feedback-box.show { display: block; }
+
+    .feedback-box.correct-fb {
+      background: var(--green-glow);
+      border: 1px solid var(--green);
+      color: #7ee787;
+    }
+
+    .feedback-box.wrong-fb {
+      background: var(--red-glow);
+      border: 1px solid var(--red);
+      color: #ffa198;
+    }
+
+    .feedback-box strong { display: block; margin-bottom: 0.3rem; }
+
+    /* ── NEXT BUTTON ── */
+    .next-btn {
+      display: none;
+      margin-top: 1.4rem;
+      width: 100%;
+      padding: 0.9rem;
+      background: linear-gradient(135deg, var(--green), #2ea043);
+      border: none;
+      border-radius: 10px;
+      color: #0d1117;
+      font-family: 'Sora', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      letter-spacing: 0.03em;
+    }
+
+    .next-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .next-btn.show { display: block; animation: fadeUp 0.3s ease both; }
+
+    /* ── RESULTS ── */
+    #results {
+      display: none;
+      text-align: center;
+    }
+
+    #results.show { display: block; animation: fadeUp 0.5s ease both; }
+
+    .score-ring {
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 1.5rem;
+      position: relative;
+    }
+
+    .score-ring svg { transform: rotate(-90deg); }
+
+    .score-ring .ring-bg { fill: none; stroke: var(--border); stroke-width: 10; }
+    .score-ring .ring-fill {
+      fill: none;
+      stroke-width: 10;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .score-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-number {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.2rem;
+      line-height: 1;
+    }
+
+    .score-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .result-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.7rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-msg {
+      color: var(--muted);
+      font-size: 0.9rem;
+      max-width: 420px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+
+    .result-breakdown {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem 1.5rem;
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+
+    .result-breakdown h3 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .breakdown-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.8rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .breakdown-item:last-child { border-bottom: none; }
+
+    .breakdown-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+    .breakdown-q { color: var(--muted); font-size: 0.8rem; }
+    .breakdown-a { font-weight: 600; margin-top: 2px; }
+
+    .restart-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.8rem 1.6rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .restart-btn:hover { border-color: var(--blue); background: rgba(88,166,255,0.06); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── START SCREEN ── */
+    #start-screen {
+      text-align: center;
+    }
+
+    .start-meta {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin: 1.5rem 0 2rem;
+      flex-wrap: wrap;
+    }
+
+    .meta-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .meta-chip span:first-child { font-size: 1rem; }
+
+    .start-btn {
+      background: linear-gradient(135deg, var(--green), #2ea043);
+      border: none;
+      border-radius: 10px;
+      color: #0d1117;
+      font-family: 'Sora', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 0.95rem 2.5rem;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      letter-spacing: 0.03em;
+    }
+    .start-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    .topics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin: 2rem 0;
+      text-align: left;
+    }
+
+    .topic-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER (always visible) -->
+  <header>
+    <div class="badge">📚 Financial Literacy Project</div>
+    <h1>How Money-Smart<br/>Are You?</h1>
+    <p>A quick quiz based on essential financial literacy concepts every student — and parent — should know.</p>
+  </header>
+
+  <!-- START SCREEN -->
+  <div id="start-screen" class="card">
+    <div class="start-meta">
+      <div class="meta-chip"><span>🎯</span> 10 Questions</div>
+      <div class="meta-chip"><span>⏱️</span> ~3 Minutes</div>
+      <div class="meta-chip"><span>💡</span> Instant Feedback</div>
+    </div>
+    <p style="color:var(--muted);font-size:0.9rem;line-height:1.7;margin-bottom:1.2rem;">
+      Test your knowledge on budgeting, saving, credit, investing, and more. Each question comes with an explanation so you can actually <em>learn</em> — not just score points.
+    </p>
+    <div class="topics">
+      <div class="topic-chip">💰 Budgeting</div>
+      <div class="topic-chip">🏦 Savings & Interest</div>
+      <div class="topic-chip">💳 Credit & Debt</div>
+      <div class="topic-chip">📈 Investing Basics</div>
+      <div class="topic-chip">🎓 Student Loans</div>
+      <div class="topic-chip">🛡️ Emergency Funds</div>
+    </div>
+    <button class="start-btn" onclick="startQuiz()">Start the Quiz →</button>
+  </div>
+
+  <!-- QUIZ AREA -->
+  <div id="quiz-area" style="display:none;">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-label">
+      <span id="progress-text">Question 1 of 10</span>
+      <span id="score-tally">Score: 0</span>
+    </div>
+
+    <div class="card" id="question-card">
+      <div class="question-number" id="q-number">Question 1</div>
+      <div class="question-text" id="q-text"></div>
+      <div class="options" id="options-wrap"></div>
+      <div class="feedback-box" id="feedback-box"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question →</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="card">
+      <div class="score-ring">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle class="ring-bg" cx="70" cy="70" r="60"/>
+          <circle class="ring-fill" id="ring-fill" cx="70" cy="70" r="60"
+            stroke-dasharray="377" stroke-dashoffset="377"/>
+        </svg>
+        <div class="score-center">
+          <div class="score-number" id="score-display">0/10</div>
+          <div class="score-label">Score</div>
+        </div>
+      </div>
+      <div class="result-title" id="result-title"></div>
+      <div class="result-msg" id="result-msg"></div>
+
+      <div class="result-breakdown">
+        <h3>Your Answers</h3>
+        <div id="breakdown-list"></div>
+      </div>
+
+      <button class="restart-btn" onclick="restart()">↩ Try Again</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    q: "What is a budget?",
+    options: [
+      "A type of savings account at the bank",
+      "A plan for how you will earn, spend, and save money",
+      "A government program that gives money to citizens",
+      "An app that tracks your fitness goals"
+    ],
+    answer: 1,
+    feedback: "A budget is a plan that helps you manage your income by deciding in advance how much to spend and save. Creating a budget is the first step to financial control — without one, it's easy to spend more than you earn."
+  },
+  {
+    q: "If you put $1,000 in a savings account with 5% annual interest, how much will you have after one year?",
+    options: [
+      "$1,005",
+      "$1,050",
+      "$1,500",
+      "$1,100"
+    ],
+    answer: 1,
+    feedback: "5% of $1,000 is $50, so after one year you'd have $1,050. This is called simple interest. Over many years, compound interest (earning interest on your interest) can grow your savings significantly more."
+  },
+  {
+    q: "What does a credit score measure?",
+    options: [
+      "How much money you currently have in your bank account",
+      "How many credit cards you own",
+      "Your likelihood of repaying borrowed money based on your credit history",
+      "The total amount of debt you owe"
+    ],
+    answer: 2,
+    feedback: "A credit score (typically 300–850) tells lenders how reliable you are at paying back loans. A higher score means better terms on loans and lower interest rates. Paying bills on time and keeping debt low helps build a strong score."
+  },
+  {
+    q: "Which of the following is an example of a 'need' rather than a 'want'?",
+    options: [
+      "The latest smartphone",
+      "Monthly streaming subscriptions",
+      "Rent for housing",
+      "Concert tickets"
+    ],
+    answer: 2,
+    feedback: "Needs are things essential for survival: housing, food, utilities, clothing. Wants are things we'd like to have but can live without — like streaming services or concert tickets. The needs-vs-wants distinction is the foundation of smart budgeting."
+  },
+  {
+    q: "What is an emergency fund?",
+    options: [
+      "Money set aside specifically for vacation trips",
+      "A government fund for natural disasters",
+      "A savings reserve covering 3–6 months of expenses for unexpected situations",
+      "A retirement savings account"
+    ],
+    answer: 2,
+    feedback: "According to Federal Reserve data, 37% of Americans can't cover a $400 emergency with cash. An emergency fund prevents you from going into debt when unexpected expenses — like car repairs or medical bills — arise."
+  },
+  {
+    q: "What is compound interest?",
+    options: [
+      "Interest paid only on your original deposit",
+      "Interest earned on both your initial amount AND the interest already earned",
+      "A penalty fee charged by banks",
+      "The interest rate on a credit card"
+    ],
+    answer: 1,
+    feedback: "Compound interest is often called the 'eighth wonder of the world.' When you earn interest on your interest, your money grows exponentially over time. Starting to save and invest early takes maximum advantage of compounding."
+  },
+  {
+    q: "A student graduates with $30,000 in loans at 6% interest. What happens if they make only minimum payments?",
+    options: [
+      "The loan balance stays at $30,000",
+      "The loan is automatically forgiven after 5 years",
+      "They'll pay significantly more than $30,000 due to accruing interest",
+      "The interest rate drops as they make payments"
+    ],
+    answer: 2,
+    feedback: "Interest accrues on unpaid balances, so making minimum payments means you're mostly paying interest — not the principal. A $30,000 loan at 6% could cost tens of thousands more over a 10-20 year repayment period. Understanding loan terms before borrowing is critical."
+  },
+  {
+    q: "What does it mean to 'diversify' your investments?",
+    options: [
+      "Put all your money into one high-performing stock",
+      "Keep all savings in a checking account",
+      "Spread money across different asset types to reduce risk",
+      "Change investments every week based on news"
+    ],
+    answer: 2,
+    feedback: "Diversification means not putting all your eggs in one basket. By spreading investments across stocks, bonds, and other assets, a loss in one area won't wipe out everything. It's a fundamental principle of long-term investing."
+  },
+  {
+    q: "At what age can you start contributing to a Roth IRA in the United States?",
+    options: [
+      "18 years old",
+      "Any age, as long as you have earned income",
+      "21 years old",
+      "Only once you have a full-time job"
+    ],
+    answer: 1,
+    feedback: "There is no minimum age for a Roth IRA — if you have earned income (from a job), you can contribute. A teenager with a part-time job can open one! Starting early means decades of tax-free compound growth, which is why teaching kids about this matters so much."
+  },
+  {
+    q: "According to research, what is the most effective way to build lasting good financial habits?",
+    options: [
+      "Taking one finance class in high school",
+      "Learning financial skills from a young age through both school and family",
+      "Waiting until adulthood to learn about money",
+      "Only reading personal finance books"
+    ],
+    answer: 1,
+    feedback: "Research shows that financial habits form in childhood. Schools and parents working together — with schools providing practical education and families having open conversations about money — is the most effective approach. A single high school course alone is often not enough to change long-term behavior."
+  }
+];
+
+let current = 0;
+let score = 0;
+let userAnswers = [];
+let answered = false;
+
+function startQuiz() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-area').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[current];
+  const total = questions.length;
+
+  document.getElementById('progress-fill').style.width = `${(current / total) * 100}%`;
+  document.getElementById('progress-text').textContent = `Question ${current + 1} of ${total}`;
+  document.getElementById('score-tally').textContent = `Score: ${score}`;
+  document.getElementById('q-number').textContent = `Question ${current + 1}`;
+  document.getElementById('q-text').textContent = q.q;
+
+  const wrap = document.getElementById('options-wrap');
+  wrap.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectAnswer(i);
+    wrap.appendChild(btn);
+  });
+
+  const fb = document.getElementById('feedback-box');
+  fb.className = 'feedback-box';
+  fb.innerHTML = '';
+
+  const nb = document.getElementById('next-btn');
+  nb.className = 'next-btn';
+  nb.textContent = current === questions.length - 1 ? 'See Results 🎉' : 'Next Question →';
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[current];
+  const buttons = document.querySelectorAll('.option-btn');
+  const isCorrect = idx === q.answer;
+
+  if (isCorrect) score++;
+  userAnswers.push({ selected: idx, correct: q.answer, isCorrect });
+
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.answer) btn.classList.add('correct');
+    else if (i === idx && !isCorrect) btn.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('feedback-box');
+  fb.className = `feedback-box show ${isCorrect ? 'correct-fb' : 'wrong-fb'}`;
+  fb.innerHTML = `<strong>${isCorrect ? '✅ Correct!' : `❌ Not quite — the answer is "${q.options[q.answer]}"`}</strong>${q.feedback}`;
+
+  document.getElementById('next-btn').classList.add('show');
+  document.getElementById('score-tally').textContent = `Score: ${score}`;
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= questions.length) {
+    showResults();
+  } else {
+    document.getElementById('question-card').style.animation = 'none';
+    setTimeout(() => {
+      document.getElementById('question-card').style.animation = 'fadeUp 0.4s ease both';
+      renderQuestion();
+    }, 10);
+  }
+}
+
+function showResults() {
+  document.getElementById('quiz-area').style.display = 'none';
+  const results = document.getElementById('results');
+  results.classList.add('show');
+
+  const pct = score / questions.length;
+  document.getElementById('score-display').textContent = `${score}/${questions.length}`;
+
+  // Animate ring
+  const circumference = 377;
+  const offset = circumference - (pct * circumference);
+  const ring = document.getElementById('ring-fill');
+  const color = pct >= 0.8 ? '#3fb950' : pct >= 0.5 ? '#e6b450' : '#f85149';
+  ring.style.stroke = color;
+  setTimeout(() => { ring.style.strokeDashoffset = offset; }, 100);
+
+  let title, msg;
+  if (pct === 1) {
+    title = "💎 Financial Genius!";
+    msg = "You aced it! You clearly understand money management deeply. Keep building on this knowledge — and share it with others!";
+  } else if (pct >= 0.8) {
+    title = "🌟 Money-Smart!";
+    msg = "Great work! You have a strong financial foundation. Review any missed questions and you'll be even sharper.";
+  } else if (pct >= 0.6) {
+    title = "📈 On the Right Track";
+    msg = "Solid effort! You know the basics but there's more to learn. Reviewing the feedback above will strengthen your financial knowledge.";
+  } else if (pct >= 0.4) {
+    title = "📚 Keep Learning";
+    msg = "You've got some foundation, but financial literacy takes practice. The good news? Every concept here can be learned — that's exactly why education matters.";
+  } else {
+    title = "🌱 Just Getting Started";
+    msg = "Don't worry — everyone starts somewhere. Financial literacy isn't taught enough in schools, which is exactly the problem this project aims to address. Review the explanations and try again!";
+  }
+
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-msg').textContent = msg;
+
+  // Breakdown
+  const list = document.getElementById('breakdown-list');
+  list.innerHTML = '';
+  questions.forEach((q, i) => {
+    const ua = userAnswers[i];
+    const div = document.createElement('div');
+    div.className = 'breakdown-item';
+    div.innerHTML = `
+      <div class="breakdown-icon">${ua.isCorrect ? '✅' : '❌'}</div>
+      <div>
+        <div class="breakdown-q">${q.q}</div>
+        <div class="breakdown-a" style="color:${ua.isCorrect ? 'var(--green)' : 'var(--red)'}">
+          ${ua.isCorrect ? 'Correct' : `You chose: "${q.options[ua.selected]}"`}
+        </div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function restart() {
+  current = 0;
+  score = 0;
+  userAnswers = [];
+  answered = false;
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('quiz-area').style.display = 'block';
+  document.getElementById('progress-fill').style.width = '0%';
+  renderQuestion();
+}
+</script>
+</body>
+</html>
